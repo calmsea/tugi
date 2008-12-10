@@ -15,10 +15,10 @@ def test():
 #    ms.append(member.SubElement())
     ms.append(member.Str2Url())
     ms.append(member.FetchFeed())
-    ms.append(member.OutputConsole("xml"))
+    ms.append(member.OutputHTML())
     for m in zip(ms[:-1], ms[1:]):
-        print m
-        print "m[0].join(m[1])"
+#        print m
+#        print "m[0].join(m[1])"
         m[0].join(m[1])
     m[-1].run()
 

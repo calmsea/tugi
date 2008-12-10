@@ -21,8 +21,34 @@ class Base(object):
 class String(Base, str):
     type = 'String'
 
+import urlparse
 class Url(String):
     type = 'Url'
+    index = dict(scheme = 0,
+                 netloc = 1,
+                 path = 2,
+                 params = 3,
+                 query = 4,
+                 fragment = 5,)
+    def __init__(self, urlstr):
+        super(Url, self).__init__()
+        self.url = urlstr
+        self.data = list(urlparse.urlparse(urlstr))
+    def __getattr__(self, key):
+        try:
+            return self.__dict__[key]
+        except KeyError:
+            pass
+        try:
+            assert not key.startswith('_')
+            return getattr(self.data, key)
+        except:
+            i = index.get(key, None)
+            if i:
+                return self.data[i]
+            raise AttributeError, "object has no attribute '%s'" % key
+    def geturl(self):
+        return self.url
 
 class Array(Base, list):
     type = 'Array'

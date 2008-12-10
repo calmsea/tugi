@@ -24,7 +24,22 @@ class RssEntry(Xml):
         except:
             raise AttributeError, "object has no attribute '%s'" % key
     def __getitem__(self, key):
-        return self.data.__getitem__(key).encode('utf-8')
+        ret = self.data.__getitem__(key)
+        try: return ret.encode('utf-8')
+        except: return ret
+
+    def get(self, key, default=None):
+        ret = self.data.get(key, default)
+        try: return ret.encode('utf-8')
+        except: return ret
+        
+    def setdefault(self, key, value):
+        ret = self.data.setdefault(key, value)
+        try: return ret.encode('utf-8')
+        except: return ret
+        
+    def has_key(self, key):
+        return self.data.has_key(key)
     
     def to_xml(self):
         sout = StringIO()
@@ -38,7 +53,7 @@ class Rss(Xml):
     type = 'Rss'
     def __init__(self, url):
         self.url = url
-        self.feed = feedparser.parse(netcache.get(url))
+        self.feed = feedparser.parse(netcache.get(url.geturl()))
     def entries(self):
         for entry in self.feed.entries:
             yield RssEntry(entry)

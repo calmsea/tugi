@@ -4,19 +4,17 @@
 from itertools import *
 from packet import Packet
 from datatype import *
-from rss import Rss
+from rss import Rss, RssEntry
 
 class Member(object):
     "Member"
     def __init__(self):
-        self.requires = {}
-        self.options = {}
+        pass
 
 class IMember(Member):
     "Input Member"
     def __init__(self):
         super(IMember, self).__init__()
-        self.outputs = {}
         self.distination = None
     def get(self):
         raise StopIteration
@@ -33,6 +31,8 @@ class OMember(Member):
     "Output Member"
     def __init__(self):
         super(OMember, self).__init__()
+        self.requires = {}
+        self.options = {}
         self.params = {}
         self.source = None
     def setRequire(self, name, types=None):
@@ -122,7 +122,6 @@ class Str2Url(IOMember):
             item = pkt.item
             if isinstance(item, String):
                 p = Packet(Url(item))
-                print p
                 yield p
         raise StopIteration
 
@@ -132,13 +131,11 @@ class FetchFeed(IOMember):
     def get(self):
         for pkt in self.source.get():
             url = pkt.item
-            print url
             if isinstance(url, Url):
                 rss = Rss(url)
                 for entry in rss.entries():
                     pkt = Packet()
                     pkt.item = entry
-                    print entry.to_xml()
                     yield pkt
         raise StopIteration
                 
@@ -149,8 +146,45 @@ class OutputConsole(DOMember):
         
     def run(self):
         for pkt in self.source.get():
-            print pkt.item.to_xml()
+            print pkt.item.title
+            print "  link    : ", pkt.item.get('link', '') 
+            print "  update  : ", pkt.item.get('updated', '')
+            print "  summary : ", pkt.item.get('summary', '')
 #            print pkt.getItem(self.type)
+
+class OutputHTML(DOMember):
+    def __init__(self):
+        super(OutputHTML, self).__init__()
+        
+    def run(self):
+        print '''<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+    <title>Output HTML by Tugi</title>
+    <style>
+        div.entry { border: solid; margin: 1ex }
+        div.header { background: #ccccff; margin: 0 }
+    </style>
+</head>
+<body>
+'''
+        for pkt in self.source.get():
+            item = pkt.item
+            if isinstance(item, RssEntry):
+                print '<div class="entry">'
+                print '<div class="header">'
+                print '<a href="%(link)s">%(title)s</a>'  % pkt.item
+                print '</div><!-- header -->'
+                print '<div class="description>'
+                if item.has_key('content'):
+                    for content in item.get('content', []):
+                        print '<div class="content">%s</div>' % content.value.encode('utf-8')
+                elif item.has_key('summary'):
+                    print '<div class="summary">%s</div>' % item.get('summary', '')
+                print '</div><!-- description -->'
+                print '</div><!-- entry -->'
+#            print pkt.getItem(self.type)
+        print '</body></html>'
 
 #
 # EOF
