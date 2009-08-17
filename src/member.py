@@ -26,7 +26,7 @@ class IMember(Member):
         self.setDistination(dist)
     def setDistination(self, dist):
         self.distination = dist
-        
+
 class OMember(Member):
     "Output Member"
     def __init__(self):
